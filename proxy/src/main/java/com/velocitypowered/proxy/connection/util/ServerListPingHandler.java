@@ -84,6 +84,7 @@ public class ServerListPingHandler {
 
     CompletableFuture<List<ServerPing>> pingResponses = CompletableFutures.successfulAsList(pings,
         (ex) -> fallback);
+    // Use the new ping passthrough mode if enabled.
     if (mode.enabled()) {
       return pingResponses.thenApply(responses -> {
         // Find the first non-fallback. If it includes a modlist, add it too.
@@ -142,6 +143,7 @@ public class ServerListPingHandler {
         return fallback;
       });
     } else {
+      // Otherwise, use the legacy ping passthrough mode.
       switch (legacyMode) {
         case ALL:
           return pingResponses.thenApply(responses -> {
