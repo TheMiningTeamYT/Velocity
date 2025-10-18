@@ -8,7 +8,7 @@ extensions.configure<PublishingExtension> {
         maven {
             credentials(PasswordCredentials::class.java)
 
-            name = if (version.toString().endsWith("SNAPSHOT")) "paperSnapshots" else "paper" // "paper" is seemingly not defined
+            name = "paper"
             val base = "https://repo.papermc.io/repository/maven"
             val releasesRepoUrl = "$base-releases/"
             val snapshotsRepoUrl = "$base-snapshots/"
