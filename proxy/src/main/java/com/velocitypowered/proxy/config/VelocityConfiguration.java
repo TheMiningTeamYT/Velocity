@@ -30,6 +30,7 @@ import com.velocitypowered.proxy.config.migration.ConfigurationMigration;
 import com.velocitypowered.proxy.config.migration.ForwardingMigration;
 import com.velocitypowered.proxy.config.migration.KeyAuthenticationMigration;
 import com.velocitypowered.proxy.config.migration.MotdMigration;
+import com.velocitypowered.proxy.config.migration.PingPassthroughMigration;
 import com.velocitypowered.proxy.config.migration.TransferIntegrationMigration;
 import com.velocitypowered.proxy.util.AddressUtil;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -77,7 +78,7 @@ public class VelocityConfiguration implements ProxyConfig {
   @Expose
   private boolean onlineModeKickExistingPlayers = false;
   @Expose
-  private PingPassthroughMode pingPassthrough = PingPassthroughMode.DISABLED;
+  private PingPassthroughMode pingPassthrough = new PingPassthroughMode(false, false, false, false, false);
   @Expose
   private boolean samplePlayersInPing = false;
   private final Servers servers;
@@ -108,8 +109,7 @@ public class VelocityConfiguration implements ProxyConfig {
       PlayerInfoForwarding playerInfoForwardingMode, byte[] forwardingSecret,
       boolean onlineModeKickExistingPlayers, PingPassthroughMode pingPassthrough,
       boolean samplePlayersInPing, boolean enablePlayerAddressLogging, Servers servers,
-      ForcedHosts forcedHosts, Advanced advanced, Query query, Metrics metrics,
-      boolean forceKeyAuthentication) {
+      ForcedHosts forcedHosts, Advanced advanced, Query query, Metrics metrics, boolean forceKeyAuthentication) {
     this.bind = bind;
     this.motd = motd;
     this.showMaxPlayers = showMaxPlayers;
@@ -504,7 +504,8 @@ public class VelocityConfiguration implements ProxyConfig {
           new ForwardingMigration(),
           new KeyAuthenticationMigration(),
           new MotdMigration(),
-          new TransferIntegrationMigration()
+          new TransferIntegrationMigration(),
+          new PingPassthroughMigration()
       };
 
       for (final ConfigurationMigration migration : migrations) {
@@ -542,9 +543,12 @@ public class VelocityConfiguration implements ProxyConfig {
       final CommentedConfig metricsConfig = config.get("metrics");
       final PlayerInfoForwarding forwardingMode = config.getEnumOrElse(
               "player-info-forwarding-mode", PlayerInfoForwarding.NONE);
-      final PingPassthroughMode pingPassthroughMode = config.getEnumOrElse("ping-passthrough",
-              PingPassthroughMode.DISABLED);
-
+      final PingPassthroughMode pingPassthrough = new PingPassthroughMode(
+              config.getOrElse("ping-passthrough-version", false),
+              config.getOrElse("ping-passthrough-players", false),
+              config.getOrElse("ping-passthrough-description", false),
+              config.getOrElse("ping-passthrough-favicon", false),
+              config.getOrElse("ping-passthrough-modinfo", false));
       final boolean samplePlayersInPing = config.getOrElse("sample-players-in-ping", false);
 
       final String bind = config.getOrElse("bind", "0.0.0.0:25565");
@@ -576,7 +580,7 @@ public class VelocityConfiguration implements ProxyConfig {
               forwardingMode,
               forwardingSecret,
               kickExisting,
-              pingPassthroughMode,
+              pingPassthrough,
               samplePlayersInPing,
               enablePlayerAddressLogging,
               new Servers(serversConfig),
