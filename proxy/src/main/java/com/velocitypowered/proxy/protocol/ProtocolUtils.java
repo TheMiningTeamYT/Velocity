@@ -150,7 +150,7 @@ public enum ProtocolUtils {
       BinaryTagTypes.COMPOUND, BinaryTagTypes.INT_ARRAY, BinaryTagTypes.LONG_ARRAY};
   private static final QuietDecoderException BAD_VARINT_CACHED =
       new QuietDecoderException("Bad VarInt decoded");
-  private static final int[] VAR_INT_LENGTHS = new int[65];
+  private static final int[] VAR_INT_LENGTHS = new int[33];
 
   static {
     for (int i = 0; i <= 32; ++i) {
@@ -250,16 +250,15 @@ public enum ProtocolUtils {
   }
 
   /**
-   * Writes the specified {@code value} as a 21-bit Minecraft VarInt to the specified {@code buf}.
+   * Directly encodes a 21-bit Minecraft VarInt, ready to be written with {@link ByteBuf#writeMedium(int)}.
    * The upper 11 bits will be discarded.
    *
-   * @param buf   the buffer to read from
-   * @param value the integer to write
+   * @param value the value to encode
+   * @return the encoded value
    */
-  public static void write21BitVarInt(ByteBuf buf, int value) {
+  public static int encode21BitVarInt(int value) {
     // See https://steinborn.me/posts/performance/how-fast-can-you-write-a-varint/
-    int w = (value & 0x7F | 0x80) << 16 | ((value >>> 7) & 0x7F | 0x80) << 8 | (value >>> 14);
-    buf.writeMedium(w);
+    return (value & 0x7F | 0x80) << 16 | ((value >>> 7) & 0x7F | 0x80) << 8 | (value >>> 14);
   }
 
   public static String readString(ByteBuf buf) {
@@ -291,6 +290,17 @@ public enum ProtocolUtils {
     String str = buf.readString(length, StandardCharsets.UTF_8);
     checkFrame(str.length() <= cap, "Got a too-long string (got %s, max %s)", str.length(), cap);
     return str;
+  }
+
+  /**
+   * Determines the size of the written {@code str} if encoded as a VarInt-prefixed UTF-8 string.
+   *
+   * @param str the string to write
+   * @return the encoded size
+   */
+  public static int stringSizeHint(CharSequence str) {
+    int size = ByteBufUtil.utf8Bytes(str);
+    return varIntBytes(size) + size;
   }
 
   /**
