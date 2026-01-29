@@ -21,3 +21,8 @@ jobs:
         distribution: 'zulu'
     - name: Build with Gradle
       run: ./gradlew build
+    - name: Generate Proxy as Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: velocity
+        path: /home/runner/work/Velocity/Velocity/proxy/velocity-proxy-3.4.0-SNAPSHOT-all.jar
