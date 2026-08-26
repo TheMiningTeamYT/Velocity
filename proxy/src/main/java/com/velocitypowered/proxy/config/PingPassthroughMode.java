@@ -29,6 +29,33 @@ import com.electronwill.nightconfig.core.CommentedConfig;
  */
 public record PingPassthroughMode(boolean version, boolean players,
     boolean description, boolean favicon, boolean modinfo) {
+  public static final PingPassthroughMode DEFAULT = new PingPassthroughMode();
+  
+  /**
+   * Creates a default PingPassthroughMode.
+   */
+  PingPassthroughMode() {
+    this(false, false, false, false, false);
+  }
+
+  /**
+   * Returns a PingPassthroughMode from a config section, or the default if the section is null.
+   * Based on the code for PacketLimiterConfig.
+   *
+   * @param config The configuration object to parse.
+   * @return The PingPassthroughMode, or the default if {@code config} is null.
+   */
+  public static PingPassthroughMode fromConfig(CommentedConfig config) {
+    if (config == null) {
+      return DEFAULT;
+    }
+    return new PingPassthroughMode(
+        config.getOrElse("version", DEFAULT.version()),
+        config.getOrElse("players", DEFAULT.players()),
+        config.getOrElse("description", DEFAULT.description()),
+        config.getOrElse("favicon", DEFAULT.favicon()),
+        config.getOrElse("modinfo", DEFAULT.modinfo()));
+  }
 
   public static final PingPassthroughMode DEFAULT = new PingPassthroughMode(
       false, false, false, false, false);
